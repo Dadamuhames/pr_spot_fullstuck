@@ -1,0 +1,391 @@
+{% extends 'admin/base_template.html' %}
+{% load static %}
+{% load get_item %}
+{% load image_thumb %}
+{% load get_dict_index %}
+{% load field_data %}
+
+{% block title %} {% if object.is_executor %} Полиграфия {% else %} Клиенты  {% endif %} {% endblock %}
+
+
+
+{% block page_title %}  
+                        {% if object.is_executor %} 
+                            <a href="{% url 'executor_list' %}">Полиграфия</a>
+                        {% else %} 
+                            <a href="{% url 'customer_list' %}">Клиенты</a> 
+                        {% endif %} {% endblock %}
+
+{% block nav_ol %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item ">
+        
+        {% if object.is_executor %} 
+            <a href="{% url 'executor_list' %}">Полиграфия</a> 
+        {% else %}
+            <a href="{% url 'customer_list' %}">Клиенты</a> 
+        {% endif %}
+    </li>
+    <li class="breadcrumb-item active" aria-current="&quot;page&quot;">
+        Добавление
+    </li>
+</ol>
+{% endblock %}
+
+{% block content_width %} class="col-12" {% endblock %}
+
+{% block css %}
+<!-- <style>
+    #cke_2_top.cke_top.cke_reset_all {
+        display: none;
+    }
+
+    #cke_3_top.cke_top.cke_reset_all {
+        display: none;
+    }
+</style> -->
+<style>
+    #business_block {
+        display: none;
+    }
+
+    #business_block.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<form class="row" action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="dropzone-key" value="{{ dropzone_key }}">
+    <input type="hidden" name="id" value="{{ object.id }}">
+    <input type="hidden" name="url" value="{{ request.get_full_path }}">
+    <div class="col-12 col-xl-6">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2 class="m-0">Данные пользователя</h2>
+            </div>
+            <div class="card-body p-5 pt-4">
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Имя
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <input type="text" name="first_name" class="form-control" 
+                    value="{% field_data field='first_name' lang=lang %}">
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.first_name %}
+                        {{ errors.first_name|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Фамилия
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <input type="text" name="last_name" class="form-control" 
+                    value="{% field_data field='last_name' lang=lang %}">
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.last_name %}
+                        {{ errors.last_name|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label mb-1">
+                        Аватар
+                    </label>
+
+                    {% if object %}
+                    <input type="hidden" id="id" value="{{ object.id }}">
+                    {% else %}
+                    <input type="hidden" id="id" value="None">                                                                      
+                    {% endif %}
+
+                    <!-- Dropzone -->
+                    <div class="dropzone dropzone-multiple border-0" data-delete="/admin/images/delete"
+                        data-url="/admin/images/save" data-max="1" data-key="{{ dropzone_key }}">
+                        <!-- Fallback -->
+                        <div class="dz-preview d-none"></div>
+                        <div class="fallback">
+                            <div class="custom-file">
+                                <input type="file" name="file" class="form-control" id="customFileUploadMultiple">
+                                <label class="form-label" for="customFileUploadMultiple">Choose file</label>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="dz-preview-container" id="lang-icon" style="padding: 0;">
+                            {% if object %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview d-none">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail="" src="" alt="">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name=""></span></div>
+                                </div>
+                                <a class="dz-remove" data-file="" data-dz-remove>Удалить</a>
+                            </div>
+                            {% if object.avatar %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview"
+                                style="position: relative;">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail=""
+                                        src='{% image_thumb object.avatar alias="ten" request=request %}'
+                                        alt="{{ object.avatar }}">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name="">{{ object.avatar }}</span>
+                                    </div>
+                                </div>
+                                <a class="dz-remove" data-file="{{ img.id }}"
+                                    onclick="var result = confirm('Want to delete?');if (result){submit_form('delete-form')}"
+                                    data-dz-remove>Удалить</a>
+                                <div action="{% url 'delete_model_field' %}" id="delete-form" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="obj_id" value="{{ object.id }}">
+                                    <input type="hidden" name="field" value="avatar">
+                                    <input type="hidden" name="model_name" value="CustomUser">
+                                    <input type="hidden" name="app_name" value="account">
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            {% if request_post and request_post|get_item:'avatar' %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail="" src="/media/{{ request_post|get_item:'avatar' }}"
+                                        alt="{{ img }}">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name="">{{ img.name }}</span></div>
+                                </div>
+                                <a class="dz-remove" data-file="{{ img }}"
+                                    onclick="var result = confirm('Want to delete?');if (result){submit_form('delete-form{{ img.id }}')}"
+                                    data-dz-remove>Удалить</a>
+                                <div action="{% url 'del-img' %}" id="delete-form{{ img.id }}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="key" value="{{ dropzone_key }}">
+                                    <input type="hidden" name="file" value="{{ request_post|get_item:'avatar' }}">
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-12 col-xl-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="id_active" {% if object.is_active or object is None %} checked {% endif %}>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Active</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-6">
+                        <div class="form-check form-switch">
+                            <input {% if object and object.get_business_profile %} disabled {% endif %} type="checkbox" name="is_executor" class="form-check-input" id="id_executor" {% if object.get_business_profile or request_post|get_item:"is_executor" %} checked {% endif %}>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Бизнес аккаунт</label>
+                        </div>
+                    </div>
+                </div>
+                <br><br>
+
+            
+                <div class="btn-box text-end">
+                    <a href="{% url success_url %}" class="btn w-30 btn-secondary">
+                        Отменить
+                    </a>
+                    <input type="submit" href="#" class="btn w-40 btn-primary" value="Сохранить">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div {% if object and object.get_business_profile or request_post and request_post|get_item:'is_executor' %} class="col-12 col-xl-6 active" {% else %} class="col-12 col-xl-6" {% endif %} id="business_block">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2 class="m-0">Бизнес аккаунт</h2>
+            </div>
+            <div class="card-body p-5 pt-4">
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Название организации
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <input type="text" name="organization" class="form-control" 
+                    value="{% field_data field='organization' lang=lang object=object.get_business_profile %}">
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.organization %}
+                        {{ errors.organization|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Номер телефона
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <input type="text" name="phone_number" class="form-control" 
+                    value="{% field_data field='phone_number' lang=lang object=object.get_business_profile %}">
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.phone_number %}
+                        {{ errors.phone_number|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                 <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Адрес
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <textarea type="text" name="address" class="form-control">{% field_data field='address' lang=lang object=object.get_business_profile %}</textarea>
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.address %}
+                        {{ errors.address|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label mb-1">
+                        Аватар бизнес аккаунта
+                    </label>
+
+                    {% if object %}
+                    <input type="hidden" id="id" value="{{ object.id }}">
+                    {% else %}
+                    <input type="hidden" id="id" value="None">                                                                      
+                    {% endif %}
+
+                    <!-- Dropzone -->
+                    <div class="dropzone dropzone-multiple border-0" data-delete="/admin/images/delete"
+                        data-url="/admin/images/save" data-max="1" data-key="{{ busines_key }}">
+                        <!-- Fallback -->
+                        <div class="dz-preview d-none"></div>
+                        <div class="fallback">
+                            <div class="custom-file">
+                                <input type="file" name="file" class="form-control" id="customFileUploadMultiple">
+                                <label class="form-label" for="customFileUploadMultiple">Choose file</label>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="dz-preview-container" id="avatar_business" style="padding: 0;">
+                            {% if object and object.get_business_profile %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview d-none">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail="" src="" alt="">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name=""></span></div>
+                                </div>
+                                <a class="dz-remove" data-file="" data-dz-remove>Удалить</a>
+                            </div>
+                            {% if object.get_business_profile.business_avatar %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview"
+                                style="position: relative;">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail=""
+                                        src='{% image_thumb object.get_business_profile.business_avatar alias="ten" request=request %}'
+                                        alt="{{ object.avatar }}">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name="">{{ object.get_business_profile.business_avatar }}</span>
+                                    </div>
+                                </div>
+                                <a class="dz-remove" data-file="{{ img.id }}"
+                                    onclick="var result = confirm('Want to delete?');if (result){submit_form('delete-form')}"
+                                    data-dz-remove>Удалить</a>
+                                <div action="{% url 'delete_model_field' %}" id="delete-form" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="obj_id" value="{{ object.get_business_profile.id }}">
+                                    <input type="hidden" name="field" value="business_avatar">
+                                    <input type="hidden" name="model_name" value="BusinessProfile">
+                                    <input type="hidden" name="app_name" value="account">
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            {% if request_post and request_post|get_item:'business_avatar' %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail="" src="/media/{{ request_post|get_item:'business_avatar' }}"
+                                        alt="{{ img }}">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name="">{{ img.name }}</span></div>
+                                </div>
+                                <a class="dz-remove" data-file="{{ img }}"
+                                    onclick="var result = confirm('Want to delete?');if (result){submit_form('delete-form_business')}"
+                                    data-dz-remove>Удалить</a>
+                                <div action="{% url 'del-img' %}" id="delete-form_business" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="key" value="{{ busines_key }}">
+                                    <input type="hidden" name="file" value="{{ request_post|get_item:'business_avatar' }}">
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-12 col-xl-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="active" class="form-check-input" id="id_active" {% if object.get_business_profile and object.get_business_profile.active or object is None or object.get_business_profile is None %} checked {% endif %}>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Active</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Form -->
+
+
+
+<!-- JAVASCRIPT -->
+<script>
+    for (let txt of document.querySelectorAll('.editor')) {
+        CKEDITOR.replace(txt)
+    }
+
+    $(document).ready(() => {
+        $('#id_executor').on('change', () => {
+            $('#business_block').toggleClass("active")
+        })
+    })
+
+</script>
+<script src="{% static 'assets/js/add_product.js' %}"></script>
+<!-- Map JS -->
+
+<!-- Vendor JS -->
+{% endblock %}
+
+
+https://cdn4.telesco.pe/file/320/xch2VJ0rHaex2UmhoC-sttWbvLtWQvPATIAenSg2q38.jpg
+https://t.me/i/userpic/320/xch2VJ0rHaex2UmhoC-sttWbvLtWQvPATIAenSg2q38.jpg

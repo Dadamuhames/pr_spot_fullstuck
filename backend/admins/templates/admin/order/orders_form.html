@@ -1,0 +1,465 @@
+{% extends 'admin/base_template.html' %}
+{% load static %}
+{% load get_item %}
+{% load image_thumb %}
+{% load get_dict_index %}
+{% load field_data %}
+
+{% block title %} Заказы {% endblock %}
+
+
+
+{% block page_title %} Заказы {% endblock %}
+
+{% block nav_ol %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item ">
+        <a href="{% url 'order_list' %}">Заказы</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="&quot;page&quot;">
+        Добавление
+    </li>
+</ol>
+{% endblock %}
+
+{% block content_width %} class="col-12" {% endblock %}
+
+{% block css %}
+<!-- <style>
+    #cke_2_top.cke_top.cke_reset_all {
+        display: none;
+    }
+
+    #cke_3_top.cke_top.cke_reset_all {
+        display: none;
+    }
+</style> -->
+<style>
+    #business_block {
+        display: none;
+    }
+
+    #business_block.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<form class="row" action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="dropzone-key" value="{{ dropzone_key }}">
+    <input type="hidden" name="id" value="{{ object.id }}">
+    <input type="hidden" name="url" value="{{ request.get_full_path }}">
+    <div class="col-12 col-xl-8">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2 class="m-0">Информация о заказе</h2>
+            </div>
+            <div class="card-body p-5 pt-4">
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Заголовок
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <input type="text" name="title" class="form-control" 
+                    value="{% field_data field='title' lang=lang %}">
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.title %}
+                        {{ errors.title|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Описание
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <textarea class="editor" name="desc">{% field_data field='desc' lang=lang %}</textarea>
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.desc %}
+                        {{ errors.desc|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                 <!-- Project cover -->
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label mb-1">
+                        Изображения
+                    </label>
+                
+                    {% if object %}
+                    <input type="hidden" id="id" value="{{ object.id }}">
+                    {% else %}
+                    <input type="hidden" id="id" value="None">
+                    {% endif %}
+                
+                    <!-- Dropzone -->
+                    <div class="dropzone dropzone-multiple border-0" data-delete="/admin/images/delete" data-url="/admin/images/save"
+                        data-max="200" data-key="{{ dropzone_key }}_multiple">
+                        <!-- Fallback -->
+                        <div class="dz-preview d-none"></div>
+                        <div class="fallback">
+                            <div class="custom-file">
+                                <input type="file" name="file" class="form-control" id="customFileUploadMultiple">
+                                <label class="form-label" for="customFileUploadMultiple">Choose file</label>
+                            </div>
+                        </div>
+                
+                        <!-- Preview -->
+                        <div class="dz-preview-container" id="project_images" style="padding: 0;">
+                            {% if object %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview d-none">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail="" src="" alt="">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name=""></span></div>
+                                </div>
+                                <a class="dz-remove" data-file="" data-dz-remove>Удалить</a>
+                            </div>
+                            {% for img in object.get_ordered_images %}
+                            <div class="dz-preview dz-processing dz-complete dz-image-preview" style="position: relative;">
+                                <div class="dz-image">
+                                    <img data-dz-thumbnail="" src='{% image_thumb img.image alias="ten" request=request %}'
+                                        alt="{{ img.image }}">
+                                </div>
+                                <div class="dz-details">
+                                    <div class="dz-filename"><span data-dz-name="">{{ img.image }}</span>
+                                    </div>
+                                </div>
+                                <a class="dz-remove" data-file="{{ img.id }}"
+                                    onclick="var result = confirm('Want to delete?');if (result){submit_form('delete-form{{ img.id }}')}"
+                                    data-dz-remove>Удалить</a>
+                                <div action="{% url 'delete' %}" id="delete-form{{ img.id }}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ img.id }}">
+                                    <input type="hidden" name="model_name_del" value="OrderImages">
+                                    <input type="hidden" name="app_name_del" value="main">
+                                    <input type="hidden" name="url" value="{{ request.get_full_path }}">
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                            {% if request_post and images %}
+                                {% for img in images %}
+                                    <div class="dz-preview dz-processing dz-complete dz-image-preview">
+                                        <div class="dz-image">
+                                            <img data-dz-thumbnail="" src="/media/{{ img|get_item:'name' }}" alt="{{ img }}">
+                                        </div>
+                                        <div class="dz-details">
+                                            <div class="dz-filename"><span data-dz-name="">{{ img.name }}</span></div>
+                                        </div>
+                                        <a class="dz-remove" data-file="{{ img.name }}"
+                                            onclick="var result = confirm('Want to delete?');if (result){submit_form('delete-form_multiple{{ images|get_index:img }}')}"
+                                            data-dz-remove>Удалить</a>
+                                        <div action="{% url 'del-img' %}" id="delete-form_multiple{{ images|get_index:img }}" method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="key" value="{{ dropzone_key }}_multiple">
+                                            <input type="hidden" name="file" value="{{ img|get_item:'name' }}">
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                
+                    </div>
+                </div>
+            
+                <div class="btn-box text-end">
+                    <a href="{% url success_url %}" class="btn w-30 btn-secondary">
+                        Отменить
+                    </a>
+                    <input type="submit" href="#" class="btn w-40 btn-primary" value="Сохранить">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2 class="m-0">Статус заказа</h2>
+            </div>
+            <div class="card-body p-5 pt-4">
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Статус
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <select class="form-select mb-4" data-choices name="status">
+                        <option value="">-----</option>
+                        {% for status, display in statuses %}
+                            {% if object and status == object.status %}
+                                <option value="{{ status }}" selected>{{ display }}</option>
+                            {% elif request_post and user == request_post|get_item:'status' %}
+                                <option value="{{ status }}" selected>{{ display }}</option>
+                            {% else %}
+                                <option value="{{ status }}">{{ display }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.status %}
+                        {{ errors.status|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Дата
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <div class="input-group input-group-merge mb-3">
+                        <input type="text" name="date" 
+                        {% if object.date %} 
+                            value="{{ object.date|date:'Y-m-d' }}" 
+                        {% elif request_post and request_post|get_item:'date' %} 
+                            value="{{ request_post|get_item:'date'|date:'Y-m-d' }}"     
+                        {% endif %} class="form-control" id="date-input"  data-flatpickr='{"dateFormat": "Y-m-d"}'>
+                        <div class="input-group-text" id="inputGroup">
+                            <span class="fe fe-clock"></span>
+                        </div>
+                    </div>
+                </div>
+
+
+                {% if object and object.get_executor_offer %}
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Начало выполнения заказа
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <div class="input-group input-group-merge mb-3">
+                        <input type="text" name="execution_start_date" 
+                        {% if object.execution_start_date %} 
+                            value="{{ object.execution_start_date|date:'Y-m-d' }}" 
+                        {% elif request_post and request_post|get_item:'execution_start_date' %} 
+                            value="{{ request_post|get_item:'execution_start_date'|date:'Y-m-d' }}"     
+                        {% endif %} class="form-control" id="date-input-2"  data-flatpickr='{"dateFormat": "Y-m-d"}'>
+                        <div class="input-group-text" id="inputGroup">
+                            <span class="fe fe-clock"></span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header">
+                <h2 class="m-0">Доп. информация</h2>
+            </div>
+            <div class="card-body p-5 pt-4">
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Заказчик
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <select class="form-select mb-4" data-choices name="costumer">
+                        <option value="">-----</option>
+                        {% for user in customers %}
+                            {% if object and user == object.costumer %}
+                                <option value="{{ user.id }}" selected>{{ user.full_name }}</option>
+                            {% elif request_post and user == request_post|get_item:'costumer' %}
+                                <option value="{{ user.id }}" selected>{{ user.full_name }}</option>
+                            {% else %}
+                                <option value="{{ user.id }}">{{ user.full_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.costumer %}
+                        {{ errors.costumer|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Исполнитель
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <select class="form-select mb-4" data-choices name="executor">
+                        <option value="">-----</option>
+                        {% for user in executors %}
+                            {% if object and user == object.executor %}
+                                <option value="{{ user.id }}" selected>{{ user.full_name }}</option>
+                            {% elif request_post and user == request_post|get_item:'executor' %}
+                                <option value="{{ user.id }}" selected>{{ user.full_name }}</option>
+                            {% else %}
+                                <option value="{{ user.id }}">{{ user.full_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.phone_number %}
+                        {{ errors.phone_number|list_item:0 }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <!-- Label  -->
+                    <label class="form-label">
+                        Категория
+                    </label>
+                    <br>
+                    <!-- Input -->
+                    <select class="form-select mb-4" id="product_ctg_select" data-choices name="category">
+                        <option value="">-----</option>
+                        {% for ctg in relateds %}
+                        {% if object and ctg == object.category %}
+                        <option value="{{ ctg.id }}" selected>{{ ctg.title }}</option>
+                        {% elif request_post and ctg == request_post|get_item:'category' %}
+                        <option value="{{ ctg.id }}" selected>{{ ctg.title }}</option>
+                        {% else %}
+                        <option value="{{ ctg.id }}">{{ ctg.title }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+
+                    <div class="invalid-feedback" style="display: block;">
+                        {% if errors.category %}
+                        {{ errors.category|list_item:0 }}
+                        {% endif %}
+                    </div>
+
+                    <div class="invalid-feedback" id="ctg_error">
+                        This field in required
+                    </div>
+                </div>
+
+                
+                
+
+                <div class="row">
+                    <div class="col-12 col-xl-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="active" class="form-check-input" id="active" {% if object and object.active %} checked {% endif %}>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Active</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% if object %}
+    <div class="col-12 col-xl-12 mb-5">
+        <div class="card mt-3">
+            <div class="crd-header p-5 pb-0">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link px-3 py-2 active" id="tab_faq" data-bs-toggle="tab"
+                            data-bs-target="#offers" type="button" role="tab" aria-controls="faq"
+                            aria-selected="true">Предложения</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-5 pt-4">
+                <div class="tab-content" id="myTabExtraContent">
+                    <div class="tab-pane fade show active" id="offers" role="tabpanel" aria-labelledby="offers">
+                        <div class="d-flex align-items-center w-100">
+                            <div class="col-6 text-start" style="padding-left: 20px;">
+                                <h2 class="m-0">Предложения</h2>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-nowrap card-table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <a class="list-sort text-muted">№</a>
+                                        </th>
+                                        <th>
+                                            <a class="list-sort text-muted">Заказ</a>
+                                        </th>
+                                        <th>
+                                            <a class="list-sort text-muted">За сколько дней</a>
+                                        </th>
+                                        <th>
+                                            <a class="list-sort text-muted">Цена</a>
+                                        </th>
+                                        <th>
+                                            <a class="list-sort text-muted">Дата</a>
+                                        </th>
+                                        <th style="width: 200px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="list fs-base">
+                                    {% for i, offer in offers.pairs %}
+                                    <tr>
+                                        <td>
+                                            {{ i }}
+                                        </td>
+                                        <td>
+                                            <a class="item-title" href="{% url 'order_edit' offer.order.id %}">{{ offer.order.title|cut_text }}</a>
+                                        </td>
+                                        <td>
+                                            {{ offer.days }}
+                                        </td>
+                                        <td>
+                                            {{ offer.price }}
+                                        </td>
+                                        
+                                        <td>
+                                            {{ offer.date|date:"Y-m-d" }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-end">
+                                                <a class="btn btn-sm btn-primary change_offer ms-3" data-id="{{ offer.id }}">
+                                                    {% if offer.active %} <i class="fe fe-eye"></i> {% else %} <i class="fe fe-eye-off"></i> {% endif %}
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</form>
+<!-- Form -->
+
+
+
+<!-- JAVASCRIPT -->
+<script>
+    for (let txt of document.querySelectorAll('.editor')) {
+        CKEDITOR.replace(txt)
+    }
+</script>
+<script src="{% static 'assets/js/add_product.js' %}"></script>
+<script src="{% static 'assets/js/change_offer.js' %}"></script>
+<!-- Map JS -->
+
+<!-- Vendor JS -->
+{% endblock %}

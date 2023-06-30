@@ -1,0 +1,9 @@
+{% load static %}
+
+<a class="navbar-brand" href="{% url 'home' %}">
+    {% if logo %}
+    <img src="{{ logo.url }}" class="navbar-brand-img mx-auto" alt="...">
+    {% else %}
+    <img src="{% static 'src/img/default.png' %}" class="navbar-brand-img mx-auto" alt="...">
+    {% endif %}
+</a>

@@ -1,0 +1,35 @@
+<ul class="pagination pagination-tabs card-pagination">
+    <li class="page-item">
+        <a class="page-link ps-0 pe-4 border-end" {% if page_obj.has_previous %}
+            href="{{ url }}page={{ page_obj.previous_page_number }}" {% else %} href="#" {% endif %}>
+            <i class="fe fe-arrow-left me-1"></i> Пред.
+        </a>
+    </li>
+</ul>
+
+<!-- Pagination -->
+<ul class="pagination pagination-tabs card-pagination">
+    {% for i in page_obj.paginator.page_range %}
+    {% if i == page_obj.number %}
+    <li class="active">
+        <a class="page" href="{{ url }}page={{ i }}" data-i="1" data-page="10">{{ i }}</a>
+    </li>
+    {% else %}
+    <li>
+        <a class="page" href="{{ url }}page={{ i }}" data-i="1" data-page="10">{{ i }}</a>
+    </li>
+    {% endif %}
+    {% endfor %}
+</ul>
+
+
+
+<!-- Pagination (next) -->
+<ul class="pagination pagination-tabs card-pagination">
+    <li class="page-item">
+        <a class="page-link ps-4 pe-0 border-start" {% if page_obj.has_next %}
+            href="{{ url }}page={{ page_obj.next_page_number }}" {% else %} href="#" {% endif %}>
+            След. <i class="fe fe-arrow-right ms-1"></i>
+        </a>
+    </li>
+</ul>

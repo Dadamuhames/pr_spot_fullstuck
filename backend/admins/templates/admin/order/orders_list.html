@@ -1,0 +1,269 @@
+{% extends 'admin/base_template.html' %}
+{% load static %}
+{% load get_item %}
+{% load cut_text %}
+{% load image_thumb %}
+{% load str %}
+
+{% block title %} Заказы {% endblock %}
+
+{% block page_title %} Заказы {% endblock %}
+
+{% block page_btn %}
+<div class="col-auto">
+    <!-- Navigation (button group) -->
+
+    <!-- Buttons -->
+    <!-- <a href="" class="btn btn-primary ms-2">
+        Добавить
+    </a> -->
+</div>
+{% endblock %}
+
+{% block nav_ol %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item active" aria-current="&quot;page&quot;">
+        Заказы
+    </li>
+</ol>
+{% endblock %}
+
+{% block content_width %} class="col-12" {% endblock %}
+
+
+{% block content %}
+<!-- Tab content -->
+<!-- Card -->
+<div class="card"
+    data-list='{"valueNames": ["item-name", "item-title", "item-email", "item-phone", "item-score", "item-company"]}'
+    id="contactsList">
+    <div class="card-header">
+        <form method="get">
+            <div class="row align-items-center">
+                <div class="col">
+                    <!-- Form -->
+                    <div class="d-flex">
+                        <div class="input-group input-group-flush input-group-merge input-group-reverse"
+                            style="width: 200px;">
+                            <input class="form-control" name="q" type="search" placeholder="Search" 
+                            {% if request.GET.q %} value="{{ request.GET.q }}" {% endif %}>
+                            <span class="input-group-text">
+                                <i class="fe fe-search"></i>
+                            </span>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Искать</button>
+                    </div>
+                </div>
+                
+                <div class="col-auto">
+
+                    <!-- Dropdown -->
+                    <div class="dropdown">
+
+                        <!-- Toggle -->
+                        <button class="btn btn-sm btn-white" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
+                        <i class="fe fe-sliders me-1"></i> Filter <span class="badge bg-primary ms-1">1</span>
+                        </button>
+
+                        <!-- Menu -->
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-card">
+                            <div class="card-header">
+
+                                <!-- Title -->
+                                <h4 class="card-header-title">
+                                Filters
+                                </h4>
+
+                                <!-- Link -->
+                                <button class="btn btn-sm btn-link text-reset" type="reset">
+                                <small>Clear filters</small>
+                                </button>
+
+                            </div>
+                            <div class="card-body">
+
+                                <!-- List group -->
+                                <div class="list-group list-group-flush mt-n4 mb-4">
+                                    <div class="list-group-item">
+                                        <div class="row">
+                                            <div class="col">
+
+                                                <!-- Text -->
+                                                <small>Статус</small>
+
+                                            </div>
+                                            <div class="col-auto">
+                                                 <!-- Select -->
+                                                <select class="form-select form-select-sm" name="status" data-choices='{"searchEnabled": false}'>
+                                                    <option value="">Все</option>
+                                                    {% for status, display in statuses %}
+                                                        <option {% if request.GET.status == status %} selected {% endif %} value="{{ status }}">{{ display }}</option>
+                                                    {% endfor %}
+                                                </select>
+
+                                            </div>
+                                        </div> <!-- / .row -->
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="row">
+                                            <div class="col">
+
+                                                <!-- Text -->
+                                                <small>Клиент</small>
+
+                                            </div>
+                                            <div class="col-auto">
+
+                                                <!-- Select -->
+                                                <select class="form-select form-select-sm" name="customer" data-choices='{"searchEnabled": false}'>
+                                                    <option value="">Все</option>
+                                                    {% for user in customers %}
+                                                        <option {% if request.GET.customer == user.id|to_string %} selected {% endif %} value="{{ user.id }}">{{ user.full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+
+                                            </div>
+                                        </div> <!-- / .row -->
+                                    </div>
+                                    
+                                    <div class="list-group-item">
+                                        <div class="row">
+                                            <div class="col">
+
+                                                <!-- Text -->
+                                                <small>Исполнитель</small>
+
+                                            </div>
+                                            <div class="col-auto">
+
+                                                <!-- Select -->
+                                                <select class="form-select form-select-sm" name="executor" data-choices='{"searchEnabled": false}'>
+                                                    <option value="">Все</option>
+                                                    {% for user in executors %}
+                                                        <option {% if request.GET.executor == user.id|to_string %} selected {% endif %} value="{{ user.id }}">{{ user.full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+
+                                            </div>
+                                        </div> <!-- / .row -->
+                                    </div>
+                                </div>
+
+                                <!-- Button -->
+                                <button class="btn w-100 btn-primary" type="submit">
+                                Apply filter
+                                </button>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div> <!-- / .row -->
+            
+            {% if request.GET.page %}
+            <input type="hidden" name="page" value="{{ request.GET.page }}">
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-responsive" style="padding: 20px;">
+        <table class="table table-sm table-hover table-nowrap card-table">
+            <thead>
+                <tr>
+                    <th style="width: 30px;">
+                        <a class="list-sort text-muted">№</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Заголовок</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Заказчик</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Категория</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Исполнитель</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Дата</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Кол-во. заявок</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Статус</a>
+                    </th>
+                    <th style="width: 200px;"></th>
+                </tr>
+            </thead>
+            <tbody class="list fs-base">
+                {% for obj, i in objects.pairs %}
+                <tr>
+                    <td>
+                        <a class="item-title" href="{% url 'order_edit' obj.id %}">{{ i }}</a>
+                    </td>
+                    <td>
+                        {{ obj.title }}
+                    </td>
+                    <td>
+                        {{ obj.costumer.full_name }}
+                    </td>
+                    <td>
+                        {{ obj.category.title }}
+                    </td>
+                    
+                    <td>
+                        {% if obj.executor %}
+                            {{ obj.executor.full_name }}
+                        {% else %}
+                            Нет
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        {{ obj.date|date:"Y-m-d" }}
+                    </td>
+                    <td>
+                        {{ obj.offers.count }}
+                    </td>
+                    <td>
+                        {{ obj.get_status_display }}
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'order_edit' obj.id %}" class="btn btn-sm btn-info ms-3"><i
+                                    class="fe fe-edit-2"></i></a>
+                            <a class="btn btn-sm btn-danger ms-3"
+                                onclick="var result = confirm('Want to delete?');if (result){form_submit_in_table('delete-form{{ obj.id }}')}"><i
+                                    class="fe fe-trash"></i></a>
+                            <form action="{% url 'delete' %}" id="delete-form{{ obj.id }}" method="POST"
+                                style="display: none;">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ obj.id }}">
+                                <input type="hidden" name="model_name_del" value="Order">
+                                <input type="hidden" name="app_name_del" value="main">
+                                <input type="hidden" name="url" value="{{ request.get_full_path }}">
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer d-flex justify-content-between">
+
+        {% include "../tags/pagination.html" %}
+
+    </div>
+</div>
+
+
+<!-- JAVASCRIPT -->
+
+<!-- Map JS -->
+<!-- Vendor JS -->
+{% endblock %}

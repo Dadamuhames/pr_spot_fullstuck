@@ -1,0 +1,179 @@
+{% extends 'admin/base_template.html' %}
+{% load static %}
+{% load get_item %}
+{% load cut_text %}
+{% load image_thumb %}
+
+{% block title %} {% if executor %} Полиграфия {% else %} Клиенты  {% endif %} {% endblock %}
+
+{% block page_title %} {% if executor %} Полиграфия {% else %} Клиенты  {% endif %} {% endblock %}
+
+{% block page_btn %}
+<div class="col-auto">
+    <!-- Navigation (button group) -->
+
+    <!-- Buttons -->
+    <!-- <a href="" class="btn btn-primary ms-2">
+        Добавить
+    </a> -->
+</div>
+{% endblock %}
+
+{% block nav_ol %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item active" aria-current="&quot;page&quot;">
+        {% if executor %} Полиграфия {% else %} Клиенты  {% endif %}
+    </li>
+</ol>
+{% endblock %}
+
+{% block content_width %} class="col-12" {% endblock %}
+
+
+{% block content %}
+<!-- Tab content -->
+<!-- Card -->
+<div class="card"
+    data-list='{"valueNames": ["item-name", "item-title", "item-email", "item-phone", "item-score", "item-company"]}'
+    id="contactsList">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <!-- Form -->
+                <form method="get">
+                    <div class="d-flex">
+                        <div class="input-group input-group-flush input-group-merge input-group-reverse"
+                            style="width: 200px;">
+                            <input class="form-control" name="q" type="search" placeholder="Search" 
+                            {% if request.GET.q %} value="{{ request.GET.q }}" {% endif %}>
+                            <span class="input-group-text">
+                                <i class="fe fe-search"></i>
+                            </span>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Искать</button>
+                    </div>
+                </form>
+            </div>
+        </div> <!-- / .row -->
+    </div>
+    <div class="table-responsive" style="padding: 20px;">
+        <table class="table table-sm table-hover table-nowrap card-table">
+            <thead>
+                <tr>
+                    <th style="width: 30px;">
+                        <a class="list-sort text-muted">№</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Аватар</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Ф.И.О.</a>
+                    </th>
+                    {% if executor %}
+                    <th>
+                        <a class="list-sort text-muted">Компания</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Лого компании</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Кол-во. принятых заказов</a>
+                    </th>
+                    {% endif %}
+                    <th>
+                        <a class="list-sort text-muted">Кол-во. оставленных заказов</a>
+                    </th>
+                    <th>
+                        <a class="list-sort text-muted">Статус</a>
+                    </th>
+                    <th style="width: 200px;"></th>
+                </tr>
+            </thead>
+            <tbody class="list fs-base">
+                {% for obj, i in objects.pairs %}
+                <tr>
+                    <td>
+                        <a class="item-title" href="{% url 'user_edit' obj.id %}">{{ i }}</a>
+                    </td>
+                    <td>
+                        <div class="avatar avatar-xl align-middle me-2">
+                            {% if obj.avatar %}
+                            <img class="avatar-img" style="object-fit: contain;"
+                                src='{% image_thumb obj.avatar alias="ten" request=request %}' alt="...">
+                            {% else %}
+                            <img class="avatar-img" src="{% static 'src/img/default.png' %}" alt="...">
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <p class="item-phone text-reset">
+                            {{ obj.full_name }}
+                        </p>
+                    </td>
+                    {% if executor %}
+                    <td>
+                        {{ obj.get_business_profile.organization }}
+                    </td>
+                    
+                    <td>
+                        <div class="avatar avatar-xl align-middle me-2">
+                            {% if obj.get_business_profile and obj.get_business_profile.business_avatar %}
+                            <img class="avatar-img" style="object-fit: contain;"
+                                src='{% image_thumb obj.get_business_profile.business_avatar alias="ten" request=request %}' alt="...">
+                            {% else %}
+                            <img class="avatar-img" src="{% static 'src/img/default.png' %}" alt="...">
+                            {% endif %}
+                        </div>
+                    </td>
+                    
+                    <td>
+                        {{ obj.accepted_orders.count }}
+                    </td>
+                    {% endif %}
+                    <td>
+                        {{ obj.orders.count }}
+                    </td>
+                    <td>
+                        {% if obj.is_active %}
+                        <span class="badge bg-success-soft">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger-soft">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'user_detail' obj.id %}" class="btn btn-sm btn-primary"><i class="fe fe-info"></i></a>
+                            <a href="{% url 'user_edit' obj.id %}" class="btn btn-sm btn-info ms-3"><i
+                                    class="fe fe-edit-2"></i></a>
+                            <a class="btn btn-sm btn-danger ms-3"
+                                onclick="var result = confirm('Want to delete?');if (result){form_submit_in_table('delete-form{{ obj.id }}')}"><i
+                                    class="fe fe-trash"></i></a>
+                            <form action="{% url 'delete' %}" id="delete-form{{ obj.id }}" method="POST"
+                                style="display: none;">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ obj.id }}">
+                                <input type="hidden" name="model_name_del" value="CustomUser">
+                                <input type="hidden" name="app_name_del" value="account">
+                                <input type="hidden" name="url" value="{{ request.get_full_path }}">
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer d-flex justify-content-between">
+
+        {% include "../tags/pagination.html" %}
+
+    </div>
+</div>
+
+
+<!-- JAVASCRIPT -->
+
+<!-- Map JS -->
+<!-- Vendor JS -->
+{% endblock %}

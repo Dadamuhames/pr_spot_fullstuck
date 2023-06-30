@@ -1,0 +1,132 @@
+{% load static %}
+{% load site_logo %}
+
+<!doctype html>
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Cavsar admin panel" />
+
+    <!-- Favicon -->
+    {% show_site_icon %}
+
+    <!-- Map CSS -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css" />
+
+    <!-- Libs CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/libs.bundle.css' %}" />
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/theme.bundle.css' %}" />
+
+    <!-- Title -->
+    <title>Cavsar admin</title>
+</head>
+
+<body class="d-flex align-items-center bg-auth border-top border-top-2 border-primary">
+
+    <!-- CONTENT
+    ================================================== -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-5 col-xl-4 my-5">
+
+                <!-- Heading -->
+                <h1 class="display-4 text-center mb-3">
+                    Sign in
+                </h1>
+                
+                <!-- Form -->
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Email address -->
+                    <div class="form-group">
+
+                        <!-- Label -->
+                        <label class="form-label">
+                            Username
+                        </label>
+
+                        <!-- Input -->
+                        <input type="text" name="username" class="form-control" placeholder="name@address.com">
+
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col">
+
+                                <!-- Label -->
+                                <label class="form-label">
+                                    Password
+                                </label>
+
+                            </div>
+                        </div> <!-- / .row -->
+
+                        <!-- Input group -->
+                        <div class="input-group input-group-merge">
+
+                            <!-- Input -->
+                            <input class="form-control" name="password" type="password" placeholder="Enter your password">
+
+                            <!-- Icon -->
+                            <span class="input-group-text" id="show_pass">
+                                <i class="fe fe-eye"></i>
+                            </span>
+
+                        </div>
+                    </div>
+                
+                    <div class="invalid-feedback" style="display: block;">
+                        {% for field, error in form.errors.items %}
+                        {{ error|list_item:0 }} <br>
+                        {% endfor %}
+                    </div>
+
+                    <br>
+
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-lg w-100 btn-primary mb-3">
+                        Sign in
+                    </button>
+                </form>
+
+            </div>
+        </div> <!-- / .row -->
+    </div> <!-- / .container -->
+
+    <!-- JAVASCRIPT -->
+    <!-- Map JS -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+
+    <!-- Vendor JS -->
+    <script src="{% static 'assets/js/vendor.bundle.js' %}"></script>
+
+    <!-- Theme JS -->
+    <script src="{% static 'assets/js/theme.bundle.js' %}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(() => {
+            $("#show_pass").on("click", () => {
+                let inp = $('[name="password"]')
+
+                if($(inp).attr('type') == 'text') {
+                    $(inp).attr("type", 'password')
+                } else if($(inp).attr('type') == 'password') {
+                    $(inp).attr("type", 'text')
+                }
+            })
+        })
+    </script>
+
+</body>
+
+</html>
